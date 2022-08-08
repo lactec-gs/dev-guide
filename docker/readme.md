@@ -4,12 +4,6 @@
 Certifique-se de não estar conectado na VPN do Lactec, pois parece haver um
 bloqueio no download dos pacotes.
 
-Este tutorial foi baseado no seguintes sites:
-
-* <https://betterprogramming.pub/how-to-install-docker-without-docker-desktop-on-windows-a2bbb65638a1>
-
-* <https://docs.docker.com/engine/install/ubuntu/>
-
 ## Conteúdo
 
 * [Instalação do Docker Engine](#1)  
@@ -17,6 +11,7 @@ Este tutorial foi baseado no seguintes sites:
 * [Instalação do Portainer](#3)
 * [Verificação do Docker no Windows](#4)
 * [Observações](#5)
+* [Fontes](#6)
 
 <a id="1"></a>
 
@@ -62,11 +57,23 @@ Este tutorial foi baseado no seguintes sites:
     sudo service docker status  # Verificar o status do serviço
     ```
 
+    **Nota 1**:  
+    É necessário executar o comando `sudo service docker start` no terminal
+    do Ubuntu toda vez que a máquina é reiniciada para iniciar o serviço Docker.
+
+    **Nota 2**:  
+    Outra forma de iniciar o serviço Docker é através do comando abaixo, a ser
+    executado no GitBash do Windows:  
+    `wsl -u root service docker status > /dev/null || wsl -u root service docker start > /dev/null`  
+
+    ou criar um script chamado `iniciar_docker.sh` em algum local de interesse com
+    o script:
+
     ```text
-        Nota: É necessário executar o comando "sudo service docker start" a cada 
-        reinicio da máquina, já que não foi configurado para iniciar o serviço Docker
-        de forma automática.
+    wsl -u root service docker status > /dev/null || wsl -u root service docker start > /dev/null
     ```
+
+    Para executar o script no GitBash: `source iniciar_docker.sh`
 
 <a id="2"></a>
 
@@ -170,3 +177,15 @@ testar:
     sudo usermod -aG docker $USER
     newgrp docker
     ```
+
+<a id="6"></a>
+
+## Fontes
+
+Este tutorial foi baseado no seguintes sites:
+
+* <https://betterprogramming.pub/how-to-install-docker-without-docker-desktop-on-windows-a2bbb65638a1>
+
+* <https://docs.docker.com/engine/install/ubuntu/>
+
+* <https://askubuntu.com/questions/1355633/how-to-start-a-specific-service-when-ubuntu-is-started-on-wsl2>

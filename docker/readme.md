@@ -189,3 +189,6 @@ Este tutorial foi baseado no seguintes sites:
 * <https://docs.docker.com/engine/install/ubuntu/>
 
 * <https://askubuntu.com/questions/1355633/how-to-start-a-specific-service-when-ubuntu-is-started-on-wsl2>
+
+* <https://github.com/codeedu/wsl2-docker-quickstart#docker-engine-docker-nativo-diretamente-instalado-no-wsl2>
+ 

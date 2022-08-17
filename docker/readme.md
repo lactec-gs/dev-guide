@@ -11,7 +11,8 @@ bloqueio no download dos pacotes.
 * [Instalação do Portainer](#3)
 * [Verificação do Docker no Windows](#4)
 * [Observações](#5)
-* [Fontes](#6)
+* [Configurar o direcionamento de porta para acesso remoto](#6)
+* [Fontes](#7)
 
 <a id="1"></a>
 
@@ -179,6 +180,31 @@ testar:
     ```
 
 <a id="6"></a>
+
+## Configurar o direcionamento de porta para acesso remoto
+
+Esta etapa é opcional, mas será necessário realizar caso você deseja conectar a um container Docker
+a partir de outra máquina. Será necessário realizar os comandos abaixo para cada porta.
+
+Executar o PowerShell como administrador: 
+
+1. Verificar os redirecionamentos existentes: `netsh interface portproxy show v4tov4`
+
+2. Adicionar o redirecionamento da porta: `netsh interface portproxy add v4tov4 listenport=9000 listenaddress=192.168.1.8 connectport=9000 connectaddress=$($(wsl hostname -I).Trim().Split(' ')[0]);`  
+
+No exemplo, 9000 é a porta para redirecionar. 192.168.1.8 é o IP da máquina Windows (host)
+
+3. Para deletar um redirecionamento: `netsh interface portproxy delete v4tov4 listenport=9000 listenaddress=192.168.1.8`   
+
+Outros comandos úteis:
+
+* Executar uma distribuição wsl: `wsl -d Ubuntu`  
+
+* Listar todas as distribuições em execução: `wsl --list --running`
+
+* Desligar as distribuições: `wsl --shutdown` 
+
+<a id="7"></a>
 
 ## Fontes
 

@@ -218,3 +218,4 @@ Este tutorial foi baseado no seguintes sites:
 
 * <https://github.com/codeedu/wsl2-docker-quickstart#docker-engine-docker-nativo-diretamente-instalado-no-wsl2>
  
+* <https://www.youtube.com/watch?v=ACjlvzw4bVE&ab_channel=MatheusBattisti-HoradeCodar>

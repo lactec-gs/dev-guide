@@ -12,7 +12,8 @@ bloqueio no download dos pacotes.
 * [Verificação do Docker no Windows](#4)
 * [Observações](#5)
 * [Configurar o direcionamento de porta para acesso remoto](#6)
-* [Fontes](#7)
+* [Iniciar Docker automaticamente ao iniciar o Windows](#7)
+* [Fontes](#8)
 
 <a id="1"></a>
 
@@ -167,7 +168,8 @@ testar:
 
 1. Verifique se o proxy não está ativo.
 
-2. Se ao digitar `docker` no terminal e não reconhecer o comando, é porque o não foi instalado.
+2. Se ao digitar `docker` no terminal e não reconhecer o comando, é porque o não
+ foi instalado.
 
 3. Recomendo tentar a instalação a partir do url <https://docs.docker.com/engine/install/ubuntu/>
 
@@ -183,10 +185,14 @@ testar:
 
 ## Configurar o direcionamento de porta para acesso remoto
 
-Esta etapa é opcional, mas será necessário realizar caso você deseja conectar a um container Docker
-a partir de outra máquina. Será necessário realizar os comandos abaixo para cada porta.
+Se preferir automatizar esta etapa, vá para item [Iniciar Docker automaticamente ao iniciar o Windows](#7)
+e pule esta etapa.
 
-Executar o PowerShell como administrador: 
+Esta etapa é opcional, mas será necessário realizar caso você deseja conectar a
+um container Docker a partir de outra máquina. Será necessário realizar os
+comandos abaixo para cada porta.
+
+Executar o PowerShell como administrador:
 
 1. Verificar os redirecionamentos existentes: `netsh interface portproxy show v4tov4`
 
@@ -194,7 +200,97 @@ Executar o PowerShell como administrador:
 
 No exemplo, 9000 é a porta para redirecionar. 192.168.1.8 é o IP da máquina Windows (host)
 
-3. Para deletar um redirecionamento: `netsh interface portproxy delete v4tov4 listenport=9000 listenaddress=192.168.1.8`   
+3. Para deletar um redirecionamento: `netsh interface portproxy delete v4tov4 listenport=9000 listenaddress=192.168.1.8`
+
+<a id="7"></a>
+
+## Iniciar Docker automaticamente ao iniciar o Windows
+
+1. Crie um script chamado ***wsl_iniciar_docker.ps1*** num diretório qualquer e copie o
+    conteúdo abaixo:
+    Se quiser mapear outras portas, só adicionar a linha:
+
+    `netsh interface portproxy add v4tov4 listenport=PORTA listenaddress=$ip_machine connectport=PORTA connectaddress=$($(wsl hostname -I).Trim().Split(' ')[0]);`
+
+    No exemplo abaixo, está mapeada apenas a porta 9000.
+
+    ```text
+    # Iniciar o serviço Docker na Distro
+    wsl -u root service docker start
+
+    # Obter o IP da máquina (Windows)
+    $ip_machine = (Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"}).IPv4Address.IPAddress
+
+    # Mapear o host e porta entre a distribuição e o Windows
+    netsh interface portproxy add v4tov4 listenport=9000 listenaddress=$ip_machine connectport=9000 connectaddress=$($(wsl hostname -I).Trim().Split(' ')[0]);
+    ```
+
+2. Para executar o script, é necessário desativar uma configuração de segurança do
+    Windows. Abra o PowerShell como administrador e execute os comando abaixo.
+    Este comando é necessário apenas uma vez.  
+    `Set-ExecutionPolicy RemoteSigned`  
+
+3. Para executar o script, digite o comando abaixo no PowerShell como administrador.  
+`.\wsl_iniciar_docker.ps1`
+
+4. Para o Docker iniciar automaticamente com o Windows, será necessário criar uma
+ tarefa no agendador de tarefas do Windows. Para facilitar, use como referência 
+ o conteúdo abaixo. Crie um arquivo com qualquer nome com extensão .xml, copie o 
+ e modifique conforme suas necessidades.  
+ Após salvar o arquivo, basta importar no Agendador de Tarefas do Windows. Será 
+ necessário alterar o usuário e caminho do script.ps1
+
+    ```text
+    <?xml version="1.0" encoding="UTF-16"?>
+    <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+    <RegistrationInfo>
+        <Date>2022-08-25T16:35:28.0523306</Date>
+        <Author>LACTEC\L01647</Author>
+        <Description>Observação: a máquina deve ter somente uma distro instalada</Description>
+        <URI>\Iniciar Docker na Distro Linux</URI>
+    </RegistrationInfo>
+    <Triggers>
+        <LogonTrigger>
+        <Enabled>true</Enabled>
+        <UserId>LACTEC\L01647</UserId>
+        </LogonTrigger>
+    </Triggers>
+    <Principals>
+        <Principal id="Author">
+        <UserId>S-1-5-21-2775306953-3624129364-2707181804-30689</UserId>
+        <LogonType>S4U</LogonType>
+        <RunLevel>HighestAvailable</RunLevel>
+        </Principal>
+    </Principals>
+    <Settings>
+        <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+        <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>
+        <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+        <AllowHardTerminate>true</AllowHardTerminate>
+        <StartWhenAvailable>false</StartWhenAvailable>
+        <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+        <IdleSettings>
+        <StopOnIdleEnd>true</StopOnIdleEnd>
+        <RestartOnIdle>false</RestartOnIdle>
+        </IdleSettings>
+        <AllowStartOnDemand>true</AllowStartOnDemand>
+        <Enabled>true</Enabled>
+        <Hidden>true</Hidden>
+        <RunOnlyIfIdle>false</RunOnlyIfIdle>
+        <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+        <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+        <WakeToRun>false</WakeToRun>
+        <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+        <Priority>7</Priority>
+    </Settings>
+    <Actions Context="Author">
+        <Exec>
+        <Command>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</Command>
+        <Arguments>"C:\_Dev\Docker\wsl_iniciar_docker.ps1"</Arguments>
+        </Exec>
+    </Actions>
+    </Task>
+    ```
 
 Outros comandos úteis:
 
@@ -202,9 +298,9 @@ Outros comandos úteis:
 
 * Listar todas as distribuições em execução: `wsl --list --running`
 
-* Desligar as distribuições: `wsl --shutdown` 
+* Desligar as distribuições: `wsl --shutdown`
 
-<a id="7"></a>
+<a id="8"></a>
 
 ## Fontes
 
@@ -217,5 +313,5 @@ Este tutorial foi baseado no seguintes sites:
 * <https://askubuntu.com/questions/1355633/how-to-start-a-specific-service-when-ubuntu-is-started-on-wsl2>
 
 * <https://github.com/codeedu/wsl2-docker-quickstart#docker-engine-docker-nativo-diretamente-instalado-no-wsl2>
- 
+
 * <https://www.youtube.com/watch?v=ACjlvzw4bVE&ab_channel=MatheusBattisti-HoradeCodar>

@@ -6,6 +6,7 @@ bloqueio no download dos pacotes.
 
 ## Conteúdo
 
+* [Instalação do Ubuntu no Windows](#A)  
 * [Instalação do Docker Engine](#1)  
 * [Instalação do Docker Compose](#2)
 * [Instalação do Portainer](#3)
@@ -13,7 +14,23 @@ bloqueio no download dos pacotes.
 * [Observações](#5)
 * [Configurar o direcionamento de porta para acesso remoto](#6)
 * [Iniciar Docker automaticamente ao iniciar o Windows](#7)
+* [Espaço em Disco](#espaco)
 * [Fontes](#8)
+
+<a id="A"></a>
+
+## Instalação do Ubuntu no Windows
+
+Ver todos os passos detalhados no site <https://betterprogramming.pub/how-to-install-docker-without-docker-desktop-on-windows-a2bbb65638a1>
+
+Abrir o PowerShell como administrador e execute os comandos a seguir:
+
+1. `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`
+
+2. `wsl --set-default-version 2`  
+   `wsl --install -d Ubuntu`
+
+3. `wsl -l -v`
 
 <a id="1"></a>
 
@@ -21,38 +38,34 @@ bloqueio no download dos pacotes.
 
 1. Executar o Ubuntu;
 
-2. Criar um script com um nome qualquer, exemplo install_docker.sh: `nano install_docker.sh`
-3. Copiar o conteúdo abaixo no arquivo e salvar:
+2. Execute o conteúdo a seguir em sequência:
 
     ```text
-    # /bin/bash
-
     # 1. Required dependencies
     sudo apt-get update
     sudo apt-get -y install apt-transport-https ca-certificates curl gnupg lsb-release
 
     # 2. GPG key
-    curl -fsSL <https://download.docker.com/linux/ubuntu/gpg> | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
     # 3. Use stable repository for Docker
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] <https://download.docker.com/linux/ubuntu> \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # 4. Install Docker
     sudo apt-get update
-    sudo apt-get -y install docker-ce docker-ce-cli containerd.io
+    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
     # 5. Add user to docker group
     sudo groupadd docker
     sudo usermod -aG docker $USER
     ```
 
-4. Executar o arquivo: `sudo ./install_docker.sh`
+3. Se houver erro na instalação via script, tente executar as etapas no site: <https://docs.docker.com/engine/install/ubuntu>
 
-6. Se houver erro na instalação via script, tente executar as etapas no site: <https://docs.docker.com/engine/install/ubuntu>
-
-5. Iniciar o docker:  
+4. Iniciar o docker:  
 
     ```text
     sudo service docker start   # Inicar o serviço do Docker
@@ -133,6 +146,8 @@ a sua escolha:
 estar pronto, ou ele se desligará automaticamente por segurança. Se você não
 criou as credenciais a tempo e ele foi encerrado automaticamente, será necessário
 reiniciar o serviço.
+
+5. Veja o item [Espaço em Disco](#espaco) após a instalação
 
 <a id="4"></a>
 
@@ -234,10 +249,10 @@ No exemplo, 9000 é a porta para redirecionar. 192.168.1.8 é o IP da máquina W
 `.\wsl_iniciar_docker.ps1`
 
 4. Para o Docker iniciar automaticamente com o Windows, será necessário criar uma
- tarefa no agendador de tarefas do Windows. Para facilitar, use como referência 
- o conteúdo abaixo. Crie um arquivo com qualquer nome com extensão .xml, copie o 
+ tarefa no agendador de tarefas do Windows. Para facilitar, use como referência
+ o conteúdo abaixo. Crie um arquivo com qualquer nome com extensão .xml, copie o
  e modifique conforme suas necessidades.  
- Após salvar o arquivo, basta importar no Agendador de Tarefas do Windows. Será 
+ Após salvar o arquivo, basta importar no Agendador de Tarefas do Windows. Será
  necessário alterar o usuário e caminho do script.ps1
 
     ```text
@@ -300,6 +315,53 @@ Outros comandos úteis:
 
 * Desligar as distribuições: `wsl --shutdown`
 
+<a id="espaco"></a>
+
+## Espaço em Disco
+
+Um problema conhecido ao usar o Docker em WSL2 no Windows é o tamanho do arquivo
+da imagem "ext4.vhdx", salvo no diretório parecido como "C:\Users\NOME_DO_USUARIO\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState"
+
+Por mais que imagens não utilizadas no Docker são deletadas, o tamanho do arquivo
+não diminui e cresce conforme o uso.
+Ver mais aqui <https://github.com/microsoft/WSL/issues/4699>
+
+Existem algumas soluções para compactar da imagem, mas o mesmo não faz milagre.
+
+1. Se quiser tentar compactar, segue as etapas:
+
+```text
+wsl.exe --shutdown
+cd C:\Users\NOME_DO_USUARIO\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState\
+optimize-vhd -Path .\ext4.vhdx -Mode full
+```
+
+2. Caso não diminuir, recomendo a exclusão da distribuição Linux e reinstalar a
+nova distribuição. O problema deste método é a reinstalação do Docker. Porém, é
+possível realizar o backup de uma distribuição Linux num arquivo .tar:
+
+3. Uma dica é criar um backup da imagem após a instalação do Docker na distribuição.
+
+    Exportar
+    ```text
+    cd C:\Users\NOME_DO_USUARIO\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState
+    wsl --export Ubuntu C:\Ubuntu.tar
+    ```
+    Importar
+    Preciso encontrar como fazer ainda, depois eu documento aqui. 
+    Num site encontrei algo como abaixo:
+
+    ```text
+    wsl --unregister docker-desktop-data
+    wsl --unregister docker-desktop
+    # Import backup of old WSL images (can be from an older version of Docker Desktop)
+    # wsl.exe --import <DistributionName> <InstallLocation> <FileName>
+    # any <InstallLocation> should work (was `%LOCALAPPDATA%/Docker/wsl/data` before)
+    wsl --import docker-desktop-data C:\Users\windows-admin\AppData\Local\Docker\wsl\data C:\Users\windows-admin\DockerVHDXs\docker-desktop-data.tar 
+    wsl --import docker-desktop C:\Users\windows-admin\AppData\Local\Docker\wsl\distro C:\Users\windows-admin\DockerVHDXs\docker-desktop.tar
+    ```
+
+
 <a id="8"></a>
 
 ## Fontes
@@ -315,3 +377,5 @@ Este tutorial foi baseado no seguintes sites:
 * <https://github.com/codeedu/wsl2-docker-quickstart#docker-engine-docker-nativo-diretamente-instalado-no-wsl2>
 
 * <https://www.youtube.com/watch?v=ACjlvzw4bVE&ab_channel=MatheusBattisti-HoradeCodar>
+
+* <https://gist.github.com/datocrats-org/6c2bea8907a98299ac26dab413f0e3d8>

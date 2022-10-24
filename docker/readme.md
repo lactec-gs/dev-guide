@@ -217,6 +217,8 @@ No exemplo, 9000 é a porta para redirecionar. 192.168.1.8 é o IP da máquina W
 
 3. Para deletar um redirecionamento: `netsh interface portproxy delete v4tov4 listenport=9000 listenaddress=192.168.1.8`
 
+4. Deletar todos os redirecionamentos: `netsh interface portproxy reset`
+
 <a id="7"></a>
 
 ## Iniciar Docker automaticamente ao iniciar o Windows

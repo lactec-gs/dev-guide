@@ -344,25 +344,25 @@ possível realizar o backup de uma distribuição Linux num arquivo .tar:
 
 3. Uma dica é criar um backup da imagem após a instalação do Docker na distribuição.
 
-    Exportar
+    **Exportar**
+
     ```text
     cd C:\Users\NOME_DO_USUARIO\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState
     wsl --export Ubuntu C:\Ubuntu.tar
     ```
-    Importar
-    Preciso encontrar como fazer ainda, depois eu documento aqui. 
-    Num site encontrei algo como abaixo:
 
-    ```text
-    wsl --unregister docker-desktop-data
-    wsl --unregister docker-desktop
-    # Import backup of old WSL images (can be from an older version of Docker Desktop)
-    # wsl.exe --import <DistributionName> <InstallLocation> <FileName>
-    # any <InstallLocation> should work (was `%LOCALAPPDATA%/Docker/wsl/data` before)
-    wsl --import docker-desktop-data C:\Users\windows-admin\AppData\Local\Docker\wsl\data C:\Users\windows-admin\DockerVHDXs\docker-desktop-data.tar 
-    wsl --import docker-desktop C:\Users\windows-admin\AppData\Local\Docker\wsl\distro C:\Users\windows-admin\DockerVHDXs\docker-desktop.tar
-    ```
+    **Importar**
+    Para importar executar o comando abaixo no PowerShell:
 
+    `wsl.exe --import <DistributionName> <InstallLocation> <FileName>`
+
+    Exemplo:
+
+    `wsl --import Ubuntu C:\Users\macrofitas\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState D:\Docker\Ubuntu.tar`
+
+    O diretório padrão de instalação (InstallLocation) não precisa estar
+    necessariamente no diretório no mesmo local do exemplo, pode ser selecionado
+    outro local.
 
 <a id="8"></a>
 
@@ -381,3 +381,5 @@ Este tutorial foi baseado no seguintes sites:
 * <https://www.youtube.com/watch?v=ACjlvzw4bVE&ab_channel=MatheusBattisti-HoradeCodar>
 
 * <https://gist.github.com/datocrats-org/6c2bea8907a98299ac26dab413f0e3d8>
+
+* <https://www.youtube.com/watch?v=dx2WoQo8hho&ab_channel=Tom%27sITCafe>
